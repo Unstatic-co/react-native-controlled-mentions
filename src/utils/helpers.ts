@@ -91,8 +91,14 @@ const getConfigsArray = <TriggerName extends string>(
  * @param parts full part list
  * @param cursor current cursor position
  * @param count count of characters that didn't change
+ * @param deleteFullMentioned when true, delete entire mentioned strings on backspace
  */
-const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] => {
+const getPartsInterval = (
+  parts: Part[],
+  cursor: number,
+  count: number,
+  deleteFullMentioned = false,
+): Part[] => {
   const newCursor = cursor + count;
 
   const currentPartIndex = getPartIndexByCursor(parts, cursor);
@@ -110,6 +116,10 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
   // Push whole first affected part or sub-part of the first affected part
   if (currentPart.position.start === cursor && currentPart.position.end <= newCursor) {
     partsInterval.push(currentPart);
+  } else if (deleteFullMentioned && currentPart.data?.trigger === '@') {
+    partsInterval.push(
+      generatePlainTextPart(currentPart.text.substring(0, -(cursor - currentPart.position.start))),
+    );
   } else {
     partsInterval.push(
       generatePlainTextPart(
@@ -129,6 +139,10 @@ const getPartsInterval = (parts: Part[], cursor: number, count: number): Part[] 
     // Push whole last affected part or sub-part of the last affected part
     if (newPart.position.end === newCursor && newPart.position.start >= cursor) {
       partsInterval.push(newPart);
+    } else if (deleteFullMentioned && newPart.data?.trigger === '@') {
+      partsInterval.push(
+        generatePlainTextPart(newPart.text.substring(0, -(newCursor - newPart.position.start))),
+      );
     } else {
       partsInterval.push(
         generatePlainTextPart(
@@ -323,10 +337,12 @@ const getTriggerPartSuggestionKeywords = <TriggerName extends string>(
  *
  * @param mentionState
  * @param changedText changed plain text
+ * @param deleteFullMentioned when true, delete entire mentioned strings on backspace
  */
 const generateValueFromMentionStateAndChangedText = (
   mentionState: MentionState,
   changedText: string,
+  deleteFullMentioned = false,
 ) => {
   const { parts, plainText } = mentionState;
 
@@ -365,7 +381,9 @@ const generateValueFromMentionStateAndChangedText = (
        */
       default: {
         if (change.count !== 0) {
-          newParts = newParts.concat(getPartsInterval(parts, cursor, change.count));
+          newParts = newParts.concat(
+            getPartsInterval(parts, cursor, change.count, deleteFullMentioned),
+          );
 
           cursor += change.count;
         }

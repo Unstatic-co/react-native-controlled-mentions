@@ -26,6 +26,7 @@ const useMentions = <TriggerName extends string>({
   patternsConfig = emptyObject,
 
   onSelectionChange,
+  deleteFullMentioned = false,
 }: UseMentionsConfig<TriggerName>) => {
   const [selection, setSelection] = useState<Position>({
     start: 0,
@@ -46,7 +47,7 @@ const useMentions = <TriggerName extends string>({
    * @param text
    */
   const handleTextChange = (text: string) => {
-    onChange(generateValueFromMentionStateAndChangedText(mentionState, text));
+    onChange(generateValueFromMentionStateAndChangedText(mentionState, text, deleteFullMentioned));
   };
 
   /**
@@ -88,9 +89,10 @@ const useMentions = <TriggerName extends string>({
       null,
       mentionState.parts.map(({ text, config, data }, index) => {
         if (!config) {
-          return React.createElement(Text, { key: index }, text)
+          return React.createElement(Text, { key: index }, text);
         }
-        const style = typeof config.textStyle === 'function' ? config.textStyle(data) : config.textStyle
+        const style =
+          typeof config.textStyle === 'function' ? config.textStyle(data) : config.textStyle;
         return React.createElement(
           Text,
           {
@@ -98,7 +100,7 @@ const useMentions = <TriggerName extends string>({
             style: style ?? defaultTriggerTextStyle,
           },
           text,
-        )
+        );
       }),
     ),
   };

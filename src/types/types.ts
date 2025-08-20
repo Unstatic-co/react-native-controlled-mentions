@@ -127,6 +127,9 @@ type UseMentionsConfig<TriggerName extends string> = {
   patternsConfig?: PatternsConfig;
 
   onSelectionChange?: (selection: Position) => void;
+
+  // When true, pressing backspace will delete the entire mentioned string instead of just one character
+  deleteFullMentioned?: boolean;
 };
 
 export type {
